@@ -73,7 +73,7 @@ static unsigned int fb_yres;
 int verbose = 0;
 
 #define UNUSED(x) (void)(x)
-
+static int enable_kbd = 0;
 /* No idea, just copied from fbvncserver as part of the frame differerencing
  * algorithm.  I will probably be later rewriting all of this. */
 static struct varblock_t
@@ -230,8 +230,8 @@ static void init_fb_server(int argc, char **argv, rfbBool enable_touch)
     server->alwaysShared = TRUE;
     server->httpDir = NULL;
     server->port = vnc_port;
-
-    server->kbdAddEvent = keyevent;
+    if (enable_kbd)
+        server->kbdAddEvent = keyevent;
     if (enable_touch)
     {
         server->ptrAddEvent = ptrevent;
@@ -627,7 +627,7 @@ int main(int argc, char **argv)
                     if (argv[i])
                         touch_rotate = atoi(argv[i]);
                     break;
-               case 'F':
+                case 'F':
                     i++;
                     if (argv[i])
                         target_fps = atoi(argv[i]);
@@ -649,8 +649,11 @@ int main(int argc, char **argv)
     if (strlen(kbd_device) > 0)
     {
         int ret = init_kbd(kbd_device);
+
         if (!ret)
             info_print("Keyboard device %s not available.\n", kbd_device);
+        else
+            enable_kbd = 1;
     }
     else
     {
